@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Champion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Kannada:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0F2B; --bg2:#131B45; --bg3:#1B2557;
+    --gold:#E8B94A; --gold-dim:#8A6B2A; --gold-glow:rgba(232,185,74,.35);
+    --teal:#2BB673; --red:#E2504A;
+    --text:#F5F3EC; --text-muted:#A7ACC9;
+    --border:rgba(232,185,74,.22);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(ellipse at top, var(--bg3) 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:'Inter','Noto Sans Devanagari','Noto Sans Kannada',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{max-width:960px;margin:0 auto;padding:28px 18px 60px;min-height:100vh;}
+  .brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:26px;}
+  .brand .diamond{width:14px;height:14px;background:var(--gold);transform:rotate(45deg);box-shadow:0 0 14px var(--gold-glow);}
+  .brand h1{font-size:20px;letter-spacing:.06em;margin:0;color:var(--gold);text-transform:uppercase;}
+  .card{background:linear-gradient(180deg,var(--bg3),var(--bg2));border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.35);}
+  .center{text-align:center;}
+  .muted{color:var(--text-muted);}
+  h2.title{font-family:'Archivo Black',sans-serif;font-size:26px;margin:0 0 8px;letter-spacing:.01em;}
+  p.sub{color:var(--text-muted);margin:0 0 26px;font-size:15px;line-height:1.6;}
+  .btn{
+    font-family:inherit;font-weight:700;font-size:15px;color:var(--bg);
+    background:linear-gradient(180deg,#F4CE6E,var(--gold));
+    border:none;border-radius:10px;padding:14px 26px;cursor:pointer;
+    box-shadow:0 8px 20px rgba(232,185,74,.25);transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(232,185,74,.35);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
+  .btn.ghost{background:transparent;color:var(--gold);border:1.5px solid var(--gold-dim);box-shadow:none;}
+  .btn.ghost:hover{border-color:var(--gold);}
+  .row{display:flex;gap:12px;flex-wrap:wrap;}
+  .row.center{justify-content:center;}
+
+  .lang-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;}
+  .lang-card{border:1.5px solid var(--border);border-radius:var(--radius);padding:26px 14px;text-align:center;cursor:pointer;background:var(--bg2);transition:.15s;}
+  .lang-card:hover{border-color:var(--gold);transform:translateY(-2px);}
+  .lang-card .big{font-size:26px;font-weight:800;margin-bottom:4px;}
+  .lang-card .small{color:var(--text-muted);font-size:13px;}
+
+  .field{margin-bottom:16px;text-align:left;}
+  .field label{display:block;font-size:13px;color:var(--text-muted);margin-bottom:6px;}
+  .field input, .field select{
+    width:100%;padding:12px 14px;border-radius:9px;border:1.5px solid var(--border);
+    background:var(--bg);color:var(--text);font-family:inherit;font-size:15px;
+  }
+  .field input:focus, .field select:focus{outline:none;border-color:var(--gold);}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+  .cat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px;}
+  .cat-card{border:1.5px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;background:var(--bg2);display:flex;align-items:center;gap:12px;transition:.15s;}
+  .cat-card:hover{border-color:var(--gold-dim);}
+  .cat-card.sel{border-color:var(--gold);background:linear-gradient(180deg,rgba(232,185,74,.14),rgba(232,185,74,.04));}
+  .cat-icon{width:40px;height:40px;border-radius:9px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:var(--gold);flex-shrink:0;pointer-events:none;}
+  .cat-card.sel .cat-icon{background:var(--gold);color:var(--bg);}
+  .cat-name{font-size:14.5px;font-weight:600;pointer-events:none;}
+
+  .game-wrap{display:grid;grid-template-columns:1fr 200px;gap:16px;}
+  @media(max-width:760px){.game-wrap{grid-template-columns:1fr;}}
+  .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:13px;color:var(--text-muted);flex-wrap:wrap;gap:8px;}
+  .top-right{display:flex;align-items:center;gap:10px;}
+  .points-now{color:var(--gold);font-family:'Archivo Black',sans-serif;font-size:20px;}
+  .sound-btn{background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:8px;padding:6px 10px;font-size:11px;cursor:pointer;font-family:inherit;}
+  .sound-btn:hover{border-color:var(--gold);color:var(--gold);}
+  .qimg{width:100%;height:170px;border-radius:10px;object-fit:cover;margin-bottom:16px;border:1px solid var(--border);pointer-events:none;}
+  .qimg-placeholder{width:100%;height:170px;border-radius:10px;margin-bottom:16px;border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.85);font-family:'Archivo Black',sans-serif;font-size:34px;letter-spacing:.05em;position:relative;overflow:hidden;pointer-events:none;}
+  .qimg-placeholder::after{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.14) 1px, transparent 1px);background-size:14px 14px;}
+  .qtext{font-size:18px;font-weight:700;line-height:1.5;margin-bottom:20px;}
+  .opt{display:block;width:100%;text-align:left;padding:14px 16px;margin-bottom:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text);font-family:inherit;font-size:14.5px;cursor:pointer;transition:.12s;}
+  .opt:hover:not(:disabled){border-color:var(--gold-dim);}
+  .opt .tag{display:inline-block;width:22px;height:22px;border-radius:50%;background:var(--bg);border:1px solid var(--border);text-align:center;line-height:22px;font-size:12px;margin-right:10px;font-weight:700;color:var(--gold);pointer-events:none;}
+  .opt.correct{border-color:var(--teal);background:rgba(43,182,115,.16);}
+  .opt.wrong{border-color:var(--red);background:rgba(226,80,74,.16);}
+  .opt.removed{opacity:.25;pointer-events:none;}
+  .opt:disabled{cursor:default;}
+  .correct-note{margin-top:2px;margin-bottom:14px;font-size:13.5px;color:var(--teal);font-weight:600;}
+
+  .lifelines{display:flex;gap:10px;margin:18px 0 4px;flex-wrap:wrap;}
+  .life-btn{flex:1;min-width:110px;padding:12px 8px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;text-align:center;}
+  .life-btn:disabled{opacity:.3;cursor:not-allowed;}
+  .life-btn:hover:not(:disabled){border-color:var(--gold);}
+
+  .audience{margin:14px 0;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--bg);}
+  .aud-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:12.5px;}
+  .aud-bar-bg{flex:1;height:14px;border-radius:7px;background:var(--bg2);overflow:hidden;}
+  .aud-bar{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));}
+  .aud-pct{width:38px;text-align:right;color:var(--text-muted);}
+
+  .ladder{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 10px;max-height:520px;overflow-y:auto;}
+  .rung{display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 6px;border-radius:6px;font-size:12px;margin-bottom:3px;color:var(--text-muted);}
+  .rung .dm{width:7px;height:7px;background:var(--text-muted);opacity:.4;transform:rotate(45deg);flex-shrink:0;}
+  .rung.done{color:var(--teal);}
+  .rung.done .dm{background:var(--teal);opacity:1;}
+  .rung.now{background:linear-gradient(90deg,rgba(232,185,74,.18),transparent);color:var(--gold);font-weight:800;}
+  .rung.now .dm{background:var(--gold);opacity:1;box-shadow:0 0 8px var(--gold-glow);}
+  @media(max-width:760px){.ladder{display:flex;overflow-x:auto;max-height:none;gap:6px;}.rung{flex-direction:column;white-space:nowrap;}}
+
+  .score-big{font-family:'Archivo Black',sans-serif;font-size:44px;color:var(--gold);margin:6px 0 2px;}
+  .badge{display:inline-block;padding:6px 16px;border-radius:20px;border:1px solid var(--gold-dim);color:var(--gold);font-size:13px;margin-top:8px;}
+  .cert-preview{width:100%;max-width:640px;border-radius:12px;border:1px solid var(--border);margin:22px auto 6px;display:block;box-shadow:0 12px 30px rgba(0,0,0,.35);}
+  .cert-building{height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:var(--bg);}
+  .spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;margin:0 auto 16px;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .note{font-size:12px;color:var(--text-muted);margin-top:14px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ---------- Data ---------- */
+const POINTS = [5,10,15,25,35,50,65,80,100,120,150,180,210,250,290,330,370,410,455,500];
+
+const CATEGORIES = [
+  {id:'general', abbr:'GK', en:'General Knowledge', hi:'सामान्य ज्ञान', kn:'ಸಾಮಾನ್ಯ ಜ್ಞಾನ', c1:'#E8B94A', c2:'#8A6B2A'},
+  {id:'science', abbr:'SC', en:'Science', hi:'विज्ञान', kn:'ವಿಜ್ಞಾನ', c1:'#2BB673', c2:'#0F6E56'},
+  {id:'computer', abbr:'CS', en:'Computer Science', hi:'कंप्यूटर विज्ञान', kn:'ಕಂಪ್ಯೂಟರ್ ವಿಜ್ಞಾನ', c1:'#378ADD', c2:'#185FA5'},
+  {id:'history', abbr:'HI', en:'History', hi:'इतिहास', kn:'ಇತಿಹಾಸ', c1:'#D85A30', c2:'#993C1D'},
+  {id:'geography', abbr:'GEO', en:'Geography', hi:'भूगोल', kn:'ಭೂಗೋಳ', c1:'#4FB6B0', c2:'#1D6E6E'},
+  {id:'sports', abbr:'SPO', en:'Sports', hi:'खेल', kn:'ಕ್ರೀಡೆ', c1:'#E2504A', c2:'#A32D2D'},
+  {id:'movies', abbr:'MOV', en:'Movies & Entertainment', hi:'फिल्म और मनोरंजन', kn:'ಚಲನಚಿತ್ರ ಮತ್ತು ಮನರಂಜನೆ', c1:'#D4537E', c2:'#993556'},
+  {id:'math', abbr:'MTH', en:'Mathematics', hi:'गणित', kn:'ಗಣಿತ', c1:'#7F77DD', c2:'#534AB7'},
+  {id:'current', abbr:'CA', en:'Current Affairs', hi:'समसामयिक घटनाएँ', kn:'ಪ್ರಚಲಿತ ವಿದ್ಯಮಾನಗಳು', c1:'#F2A623', c2:'#B5780F'},
+  {id:'mythology', abbr:'MYT', en:'Mythology & Culture', hi:'पौराणिक कथाएँ और संस्कृति', kn:'ಪುರಾಣ ಮತ್ತು ಸಂಸ್ಕೃತಿ', c1:'#B98CE0', c2:'#6E4A96'}
+];
+
+/* Built-in fallback question bank — used automatically if the live AI call
+   can't be reached (e.g. no network, or running outside an environment that
+   can authorize the API call), so the game is always playable. */
+const FALLBACK = {
+  general:[
+    {question:'Which is the largest ocean on Earth?', options:['Atlantic','Indian','Pacific','Arctic'], correctIndex:2},
+    {question:'How many continents are there on Earth?', options:['5','6','7','8'], correctIndex:2},
+    {question:"What is India's national bird?", options:['Peacock','Sparrow','Eagle','Parrot'], correctIndex:0},
+    {question:'Which gas do plants absorb from the air for photosynthesis?', options:['Oxygen','Carbon dioxide','Nitrogen','Hydrogen'], correctIndex:1},
+    {question:'What is the capital of Australia?', options:['Sydney','Melbourne','Canberra','Perth'], correctIndex:2},
+    {question:'Which is the tallest mountain in the world?', options:['K2','Kangchenjunga','Mount Everest','Nanga Parbat'], correctIndex:2}
+  ],
+  science:[
+    {question:'What is the chemical symbol for gold?', options:['Ag','Au','Gd','Go'], correctIndex:1},
+    {question:'Which planet is known as the Red Planet?', options:['Venus','Jupiter','Mars','Saturn'], correctIndex:2},
+    {question:'What is the powerhouse of the cell?', options:['Nucleus','Ribosome','Mitochondria','Golgi body'], correctIndex:2},
+    {question:'Which force keeps us grounded on Earth?', options:['Magnetism','Gravity','Friction','Tension'], correctIndex:1},
+    {question:'What is H2O commonly known as?', options:['Salt','Hydrogen peroxide','Water','Oxygen'], correctIndex:2},
+    {question:'Which blood cells help fight infection?', options:['Red blood cells','White blood cells','Platelets','Plasma'], correctIndex:1}
+  ],
+  computer:[
+    {question:'What does CPU stand for?', options:['Central Process Unit','Central Processing Unit','Computer Personal Unit','Central Processor Utility'], correctIndex:1},
+    {question:'Which language is mainly used for styling web pages?', options:['HTML','CSS','Python','Java'], correctIndex:1},
+    {question:'What does RAM stand for?', options:['Random Access Memory','Read Access Memory','Rapid Access Module','Random Allocation Memory'], correctIndex:0},
+    {question:'Which company developed the Android operating system?', options:['Apple','Microsoft','Google','IBM'], correctIndex:2},
+    {question:'What symbol denotes a comment in Python?', options:['//','#','<!-- -->','**'], correctIndex:1},
+    {question:'What does "www" stand for?', options:['World Wide Web','World Web Wide','Wide World Web','Web World Wide'], correctIndex:0}
+  ],
+  history:[
+    {question:'Who was the first Prime Minister of India?', options:['Mahatma Gandhi','Jawaharlal Nehru','Sardar Patel','Dr. Rajendra Prasad'], correctIndex:1},
+    {question:'In which year did World War II end?', options:['1943','1945','1947','1950'], correctIndex:1},
+    {question:'Who built the Taj Mahal?', options:['Akbar','Shah Jahan','Aurangzeb','Humayun'], correctIndex:1},
+    {question:'Who was known as the Iron Man of India?', options:['Bhagat Singh','Sardar Vallabhbhai Patel','Subhas Chandra Bose','Lal Bahadur Shastri'], correctIndex:1},
+    {question:'The Quit India Movement began in which year?', options:['1930','1942','1947','1920'], correctIndex:1},
+    {question:'Which ancient civilization built the pyramids of Giza?', options:['Roman','Greek','Egyptian','Mesopotamian'], correctIndex:2}
+  ],
+  geography:[
+    {question:'Which is the longest river in the world?', options:['Amazon','Nile','Yangtze','Ganges'], correctIndex:1},
+    {question:'Which is the smallest country in the world?', options:['Monaco','San Marino','Vatican City','Malta'], correctIndex:2},
+    {question:'Which is the largest desert in the world?', options:['Sahara','Gobi','Kalahari','Thar'], correctIndex:0},
+    {question:'Mount Kilimanjaro is located on which continent?', options:['Asia','Africa','South America','Europe'], correctIndex:1},
+    {question:'Which is the largest state in India by area?', options:['Maharashtra','Rajasthan','Madhya Pradesh','Uttar Pradesh'], correctIndex:1},
+    {question:'Which river is considered the most sacred in India?', options:['Yamuna','Godavari','Ganga','Kaveri'], correctIndex:2}
+  ],
+  sports:[
+    {question:'How many players are on a cricket team on the field?', options:['9','10','11','12'], correctIndex:2},
+    {question:'In tennis, what is the term for zero called?', options:['Nil','Love','Duck','Blank'], correctIndex:1},
+    {question:'The FIFA World Cup is associated with which sport?', options:['Cricket','Football','Hockey','Basketball'], correctIndex:1},
+    {question:'How often are the Summer Olympic Games held?', options:['Every 2 years','Every 4 years','Every 5 years','Every 3 years'], correctIndex:1},
+    {question:'Which country has won the most Cricket World Cups?', options:['India','Australia','England','West Indies'], correctIndex:1},
+    {question:'In badminton, what is the shuttlecock also called?', options:['Puck','Birdie','Ball','Disc'], correctIndex:1}
+  ],
+  movies:[
+    {question:'Which Indian film industry is popularly known as Bollywood?', options:['Tamil','Hindi','Telugu','Kannada'], correctIndex:1},
+    {question:'Who directed the classic film "Sholay"?', options:['Yash Chopra','Ramesh Sippy','Raj Kapoor','Manmohan Desai'], correctIndex:1},
+    {question:'Which streaming platform released "Stranger Things"?', options:['Amazon Prime','Disney+','Netflix','Hulu'], correctIndex:2},
+    {question:'Which actor is known as the "King of Bollywood"?', options:['Aamir Khan','Salman Khan','Shah Rukh Khan','Akshay Kumar'], correctIndex:2},
+    {question:'The Oscars are also known as the ___?', options:['Grammy Awards','Academy Awards','Emmy Awards','Tony Awards'], correctIndex:1},
+    {question:'Which studio created "Toy Story"?', options:['DreamWorks','Pixar','Illumination','Disney Animation'], correctIndex:1}
+  ],
+  math:[
+    {question:'What is the value of Pi (π) to two decimal places?', options:['3.12','3.14','3.16','3.18'], correctIndex:1},
+    {question:'What is the square root of 144?', options:['11','12','13','14'], correctIndex:1},
+    {question:'How many degrees are in a right angle?', options:['45','90','180','360'], correctIndex:1},
+    {question:'What is 7 multiplied by 8?', options:['54','56','58','64'], correctIndex:1},
+    {question:'What is the sum of angles in a triangle?', options:['90 degrees','180 degrees','270 degrees','360 degrees'], correctIndex:1},
+    {question:'A number divisible only by 1 and itself is called a ___?', options:['Composite number','Prime number','Even number','Odd number'], correctIndex:1}
+  ],
+  current:[
+    {question:'The headquarters of the United Nations is located in which city?', options:['Geneva','New York','Paris','London'], correctIndex:1},
+    {question:'WHO stands for which organization?', options:['World Health Organization','World Humanitarian Office','World Health Office','World Health Oversight'], correctIndex:0},
+    {question:"India's space agency ISRO is headquartered in which city?", options:['Mumbai','Bengaluru','Chennai','Delhi'], correctIndex:1},
+    {question:'G20 refers to a group of how many major economies?', options:['15','20','25','30'], correctIndex:1},
+    {question:'Which is the largest country in the world by land area?', options:['Canada','USA','Russia','China'], correctIndex:2},
+    {question:'The Reserve Bank of India is the country\'s central ___?', options:['Stock exchange','Bank','Ministry','Court'], correctIndex:1}
+  ],
+  mythology:[
+    {question:'In Hindu mythology, who is known as the destroyer among the trinity?', options:['Brahma','Vishnu','Shiva','Indra'], correctIndex:2},
+    {question:"Which epic narrates Rama's exile and return?", options:['Mahabharata','Ramayana','Bhagavad Gita','Puranas'], correctIndex:1},
+    {question:'Who is the Hindu god of wisdom, often worshipped first?', options:['Ganesha','Hanuman','Kartikeya','Indra'], correctIndex:0},
+    {question:'The Bhagavad Gita is part of which epic?', options:['Ramayana','Mahabharata','Puranas','Vedas'], correctIndex:1},
+    {question:"Who is regarded as Lord Rama's greatest devotee?", options:['Sugriva','Hanuman','Vibhishana','Lakshmana'], correctIndex:1},
+    {question:'In Greek mythology, who is the king of the gods?', options:['Poseidon','Zeus','Hades','Apollo'], correctIndex:1}
+  ]
+};
+
+const TR = {
+  en:{brand:'Quiz Champion', chooseLang:'Choose your language', continueBtn:'Continue', back:'Back',
+    yourName:'Your name', yourAge:'Your age', yourClass:'Your class / level', selectClass:'Select',
+    tellUs:"Let's set you up", tellUsSub:'A few quick details before we start.',
+    chooseCat:'Choose your categories', chooseCatSub:'Pick one or more. Questions are drawn randomly and never repeat the same way twice.',
+    startQuiz:'Start the quiz', selectedCount:'selected',
+    question:'Question', of:'of', prizeLadder:'Prize ladder',
+    fiftyFifty:'50-50', skip:'Skip', skipsLeft:'left', cashOut:'Bank score', audience:'Ask audience',
+    loadingQ:'Preparing your next question…', loadErr:"Couldn't load questions. Check your connection.", retry:'Retry',
+    youWon:'Quiz complete!', youLost:'Game over', youCashed:'Score banked!', youLeft:'Game closed — you left the quiz',
+    finalScoreLbl:'Final score', downloadCert:'Download certificate', playAgain:'Play again', newSetup:'Start over',
+    correctAns:'Correct answer', shareResult:'Share result', copied:'Result copied to clipboard!', sound:'Sound', pts:'pts'},
+  hi:{brand:'क्विज़ चैंपियन', chooseLang:'अपनी भाषा चुनें', continueBtn:'आगे बढ़ें', back:'वापस',
+    yourName:'आपका नाम', yourAge:'आपकी उम्र', yourClass:'आपकी कक्षा / स्तर', selectClass:'चुनें',
+    tellUs:'चलिए शुरू करते हैं', tellUsSub:'शुरू करने से पहले कुछ जानकारी दें।',
+    chooseCat:'अपनी श्रेणियाँ चुनें', chooseCatSub:'एक या अधिक चुनें। सवाल हर बार अलग और यादृच्छिक क्रम में आएंगे।',
+    startQuiz:'क्विज़ शुरू करें', selectedCount:'चयनित',
+    question:'प्रश्न', of:'में से', prizeLadder:'पुरस्कार सीढ़ी',
+    fiftyFifty:'50-50', skip:'छोड़ें', skipsLeft:'शेष', cashOut:'अंक सुरक्षित करें', audience:'दर्शकों से पूछें',
+    loadingQ:'अगला प्रश्न तैयार हो रहा है…', loadErr:'प्रश्न लोड नहीं हो सके। कनेक्शन जाँचें।', retry:'पुनः प्रयास करें',
+    youWon:'क्विज़ पूरी हुई!', youLost:'खेल समाप्त', youCashed:'अंक सुरक्षित हुए!', youLeft:'खेल बंद — आप क्विज़ से बाहर चले गए',
+    finalScoreLbl:'अंतिम स्कोर', downloadCert:'प्रमाणपत्र डाउनलोड करें', playAgain:'फिर से खेलें', newSetup:'नई शुरुआत',
+    correctAns:'सही उत्तर', shareResult:'परिणाम साझा करें', copied:'क्लिपबोर्ड पर कॉपी हुआ!', sound:'ध्वनि', pts:'अंक'},
+  kn:{brand:'ಕ್ವಿಜ್ ಚಾಂಪಿಯನ್', chooseLang:'ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆರಿಸಿ', continueBtn:'ಮುಂದುವರಿಸಿ', back:'ಹಿಂದೆ',
+    yourName:'ನಿಮ್ಮ ಹೆಸರು', yourAge:'ನಿಮ್ಮ ವಯಸ್ಸು', yourClass:'ನಿಮ್ಮ ತರಗತಿ / ಹಂತ', selectClass:'ಆಯ್ಕೆಮಾಡಿ',
+    tellUs:'ಪ್ರಾರಂಭಿಸೋಣ', tellUsSub:'ಪ್ರಾರಂಭಿಸುವ ಮೊದಲು ಕೆಲವು ವಿವರಗಳು.',
+    chooseCat:'ನಿಮ್ಮ ವಿಭಾಗಗಳನ್ನು ಆರಿಸಿ', chooseCatSub:'ಒಂದು ಅಥವಾ ಹೆಚ್ಚು ಆರಿಸಿ. ಪ್ರಶ್ನೆಗಳು ಪ್ರತಿ ಬಾರಿ ವಿಭಿನ್ನವಾಗಿ ಬರುತ್ತವೆ.',
+    startQuiz:'ಕ್ವಿಜ್ ಪ್ರಾರಂಭಿಸಿ', selectedCount:'ಆಯ್ಕೆಯಾಗಿದೆ',
+    question:'ಪ್ರಶ್ನೆ', of:'ರಲ್ಲಿ', prizeLadder:'ಬಹುಮಾನ ಏಣಿ',
+    fiftyFifty:'50-50', skip:'ಬಿಟ್ಟುಬಿಡಿ', skipsLeft:'ಉಳಿದಿದೆ', cashOut:'ಅಂಕ ಉಳಿಸಿ', audience:'ಪ್ರೇಕ್ಷಕರನ್ನು ಕೇಳಿ',
+    loadingQ:'ಮುಂದಿನ ಪ್ರಶ್ನೆ ಸಿದ್ಧವಾಗುತ್ತಿದೆ…', loadErr:'ಪ್ರಶ್ನೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗಲಿಲ್ಲ. ಸಂಪರ್ಕ ಪರಿಶೀಲಿಸಿ.', retry:'ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ',
+    youWon:'ಕ್ವಿಜ್ ಪೂರ್ಣಗೊಂಡಿದೆ!', youLost:'ಆಟ ಮುಗಿದಿದೆ', youCashed:'ಅಂಕಗಳು ಉಳಿಸಲಾಗಿದೆ!', youLeft:'ಆಟ ಮುಚ್ಚಲಾಗಿದೆ — ನೀವು ಕ್ವಿಜ್ ಬಿಟ್ಟು ಹೋಗಿದ್ದೀರಿ',
+    finalScoreLbl:'ಅಂತಿಮ ಅಂಕ', downloadCert:'ಪ್ರಮಾಣಪತ್ರ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ', playAgain:'ಮತ್ತೆ ಆಡಿ', newSetup:'ಹೊಸದಾಗಿ ಪ್ರಾರಂಭಿಸಿ',
+    correctAns:'ಸರಿಯಾದ ಉತ್ತರ', shareResult:'ಫಲಿತಾಂಶ ಹಂಚಿಕೊಳ್ಳಿ', copied:'ಕ್ಲಿಪ್‌ಬೋರ್ಡ್‌ಗೆ ನಕಲಿಸಲಾಗಿದೆ!', sound:'ಧ್ವನಿ', pts:'ಅಂಕಗಳು'}
+};
+const LANG_LABEL = {en:{big:'English', small:'Play in English'}, hi:{big:'हिंदी', small:'हिंदी में खेलें'}, kn:{big:'ಕನ್ನಡ', small:'ಕನ್ನಡದಲ್ಲಿ ಆಡಿ'}};
+const LANG_NAME_FOR_PROMPT = {en:'English', hi:'Hindi (Devanagari script)', kn:'Kannada (Kannada script)'};
+const CLASS_OPTIONS = ['5','6','7','8','9','10','11','12','College / Graduate','Other'];
+
+function t(k){ return (TR[STATE.lang] && TR[STATE.lang][k]) || TR.en[k]; }
+function catLabel(cat){ return cat[STATE.lang] || cat.en; }
+function fmt(n){ return n.toLocaleString('en-IN'); }
+function tierName(score){
+  if(score>=450) return 'Platinum Champion';
+  if(score>=300) return 'Gold Achiever';
+  if(score>=150) return 'Silver Achiever';
+  if(score>0) return 'Bronze Achiever';
+  return 'Participant';
+}
+
+/* ---------- State ---------- */
+const STATE = {
+  lang:'en', name:'', age:'', klass:'',
+  categories:[], plan:[], qIndex:0, fetchedCount:0,
+  buffer:[], askedTexts:new Set(), usedFallback:false,
+  fiftyUsed:false, skipsLeft:3, removedOptions:null, audienceUsed:false, audienceData:null,
+  currentQuestion:null, answered:false, selectedIdx:null,
+  correctStreakTier:-1, outcome:null, soundOn:true, certDataUrl:null, certBuilding:false,
+  status:'lang', lastBatchArgs:null, _fetching:false
+};
+
+/* ---------- Sound ---------- */
+let audioCtx;
+function beep(freq, dur){
+  if(!STATE.soundOn) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+    o.frequency.value = freq; o.type='sine';
+    o.connect(g); g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
+    o.start(); o.stop(audioCtx.currentTime+dur);
+  }catch(e){}
+}
+function toggleSound(){ STATE.soundOn=!STATE.soundOn; render(); }
+
+/* ---------- Anti-cheat: leaving the tab/app ends the game ---------- */
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden && STATE.status==='game' && !STATE.answered){
+    STATE.score = STATE.correctStreakTier>=0 ? POINTS[STATE.correctStreakTier] : 0;
+    enterResult('left');
+  }
+});
+
+/* ---------- Event delegation (no inline onclick, so this works everywhere) ---------- */
+document.getElementById('app').addEventListener('click', function(e){
+  const el = e.target.closest('[data-action]');
+  if(!el) return;
+  const action = el.getAttribute('data-action');
+  const value = el.getAttribute('data-value');
+  if(action==='goLang'){ goLang(value); }
+  else if(action==='gotoLang'){ STATE.status='lang'; render(); }
+  else if(action==='gotoUserInfo'){ STATE.status='userinfo'; render(); }
+  else if(action==='submitUserInfo'){ submitUserInfo(); }
+  else if(action==='toggleCategory'){ toggleCategory(value); }
+  else if(action==='startQuiz'){ startQuiz(); }
+  else if(action==='retryLoad'){ retryLoad(); }
+  else if(action==='toggleSound'){ toggleSound(); }
+  else if(action==='selectAnswer'){ selectAnswer(parseInt(value,10)); }
+  else if(action==='fiftyFifty'){ useFiftyFifty(); }
+  else if(action==='audience'){ useAudience(); }
+  else if(action==='skip'){ useSkip(); }
+  else if(action==='cashOut'){ cashOut(); }
+  else if(action==='certificate'){ downloadCertificate(); }
+  else if(action==='share'){ shareResult(); }
+  else if(action==='playAgain'){ STATE.status='categories'; STATE.certDataUrl=null; resetQuizState(); render(); }
+  else if(action==='newSetup'){ STATE.status='lang'; render(); }
+});
+
+/* ---------- Screens ---------- */
+function render(){
+  const app = document.getElementById('app');
+  let html = '<div class="brand"><div class="diamond"></div><h1>'+t('brand')+'</h1><div class="diamond"></div></div>';
+  if(STATE.status==='lang') html += screenLang();
+  else if(STATE.status==='userinfo') html += screenUserInfo();
+  else if(STATE.status==='categories') html += screenCategories();
+  else if(STATE.status==='loading') html += screenLoading();
+  else if(STATE.status==='error') html += screenError();
+  else if(STATE.status==='game') html += screenGame();
+  else if(STATE.status==='result') html += screenResult();
+  app.innerHTML = html;
+}
+
+function screenLang(){
+  return '<div class="card center"><h2 class="title">'+t('chooseLang')+'</h2><p class="sub">Kannada · English · Hindi</p><div class="lang-grid">'+
+    Object.keys(LANG_LABEL).map(function(l){
+      return '<div class="lang-card" data-action="goLang" data-value="'+l+'"><div class="big">'+LANG_LABEL[l].big+'</div><div class="small">'+LANG_LABEL[l].small+'</div></div>';
+    }).join('') + '</div></div>';
+}
+function goLang(l){ STATE.lang=l; STATE.status='userinfo'; render(); }
+
+function screenUserInfo(){
+  return '<div class="card"><h2 class="title">'+t('tellUs')+'</h2><p class="sub">'+t('tellUsSub')+'</p>'+
+    '<div class="field"><label>'+t('yourName')+'</label><input id="f-name" type="text" value="'+STATE.name+'" maxlength="40"></div>'+
+    '<div class="two-col"><div class="field"><label>'+t('yourAge')+'</label><input id="f-age" type="number" min="4" max="100" value="'+STATE.age+'"></div>'+
+    '<div class="field"><label>'+t('yourClass')+'</label><select id="f-class"><option value="">'+t('selectClass')+'</option>'+
+    CLASS_OPTIONS.map(function(c){ return '<option value="'+c+'" '+(STATE.klass===c?'selected':'')+'>'+c+'</option>'; }).join('')+
+    '</select></div></div><div id="f-err" style="color:var(--red);font-size:13px;margin-bottom:10px;"></div>'+
+    '<div class="row"><button class="btn ghost" data-action="gotoLang">'+t('back')+'</button>'+
+    '<button class="btn" data-action="submitUserInfo">'+t('continueBtn')+'</button></div></div>';
+}
+function submitUserInfo(){
+  const name = document.getElementById('f-name').value.trim();
+  const age = document.getElementById('f-age').value.trim();
+  const klass = document.getElementById('f-class').value;
+  if(!name){ document.getElementById('f-err').textContent = 'Please enter your name.'; return; }
+  STATE.name=name; STATE.age=age; STATE.klass=klass;
+  STATE.status='categories'; render();
+}
+
+function screenCategories(){
+  return '<div class="card"><h2 class="title">'+t('chooseCat')+'</h2><p class="sub">'+t('chooseCatSub')+'</p><div class="cat-grid">'+
+    CATEGORIES.map(function(c){
+      return '<div class="cat-card '+(STATE.categories.includes(c.id)?'sel':'')+'" data-action="toggleCategory" data-value="'+c.id+'">'+
+        '<div class="cat-icon">'+c.abbr+'</div><div class="cat-name">'+catLabel(c)+'</div></div>';
+    }).join('') + '</div>'+
+    '<div class="row" style="justify-content:space-between;align-items:center;"><div class="muted">'+STATE.categories.length+' '+t('selectedCount')+'</div>'+
+    '<div class="row"><button class="btn ghost" data-action="gotoUserInfo">'+t('back')+'</button>'+
+    '<button class="btn" '+(STATE.categories.length? '' : 'disabled')+' data-action="startQuiz">'+t('startQuiz')+'</button></div></div></div>';
+}
+function toggleCategory(id){
+  const i = STATE.categories.indexOf(id);
+  if(i>=0) STATE.categories.splice(i,1); else STATE.categories.push(id);
+  render();
+}
+
+function screenLoading(){
+  return '<div class="card center"><div class="spinner"></div><p class="muted">'+t('loadingQ')+'</p></div>';
+}
+function screenError(){
+  return '<div class="card center"><p style="color:var(--red);font-weight:600;">'+t('loadErr')+'</p><button class="btn" data-action="retryLoad">'+t('retry')+'</button></div>';
+}
+function retryLoad(){
+  if(STATE.lastBatchArgs){ STATE.status='loading'; render(); loadBatch(STATE.lastBatchArgs.startIdx, STATE.lastBatchArgs.count).then(nextQuestion); }
+  else { startQuiz(); }
+}
+
+function screenGame(){
+  const q = STATE.currentQuestion;
+  if(!q) return screenLoading();
+  const pts = POINTS[STATE.qIndex];
+  const cat = CATEGORIES.find(function(c){return c.id===q.category;}) || CATEGORIES[0];
+  const imgHtml = q.image
+    ? '<img class="qimg" src="'+q.image+'" alt="">'
+    : '<div class="qimg-placeholder" style="background:linear-gradient(135deg,'+cat.c1+',' + cat.c2 + ')">'+cat.abbr+'</div>';
+  const letters = ['A','B','C','D'];
+  const optsHtml = q.options.map(function(opt,i){
+    let cls='opt';
+    if(STATE.removedOptions && STATE.removedOptions.indexOf(i)>=0) cls+=' removed';
+    if(STATE.answered){
+      if(i===q.correctIndex) cls+=' correct';
+      else if(i===STATE.selectedIdx) cls+=' wrong';
+    }
+    return '<button class="'+cls+'" '+(STATE.answered? 'disabled':'')+' data-action="selectAnswer" data-value="'+i+'"><span class="tag">'+letters[i]+'</span>'+opt+'</button>';
+  }).join('');
+
+  let correctNote = '';
+  if(STATE.answered && STATE.selectedIdx !== q.correctIndex){
+    correctNote = '<div class="correct-note">'+t('correctAns')+': '+q.options[q.correctIndex]+'</div>';
+  }
+
+  let audienceHtml = '';
+  if(STATE.audienceData){
+    audienceHtml = '<div class="audience">' + STATE.audienceData.map(function(p,i){
+      return '<div class="aud-row"><span class="tag">'+letters[i]+'</span><div class="aud-bar-bg"><div class="aud-bar" style="width:'+p+'%"></div></div><div class="aud-pct">'+p+'%</div></div>';
+    }).join('') + '</div>';
+  }
+
+  const ladderHtml = POINTS.map(function(p,i){
+    let cls='rung';
+    if(i===STATE.qIndex) cls+=' now'; else if(i<STATE.qIndex) cls+=' done';
+    return '<div class="'+cls+'"><span class="dm"></span> '+fmt(p)+'</div>';
+  }).reverse().join('');
+
+  return '<div class="game-wrap"><div class="card">'+
+    '<div class="top-bar"><div>'+t('question')+' '+(STATE.qIndex+1)+' '+t('of')+' 20 · '+catLabel(cat)+'</div>'+
+    '<div class="top-right"><button class="sound-btn" data-action="toggleSound">'+t('sound')+': '+(STATE.soundOn?'On':'Off')+'</button><div class="points-now">'+fmt(pts)+' '+t('pts')+'</div></div></div>'+
+    imgHtml + '<div class="qtext">'+q.question+'</div>' + optsHtml + correctNote + audienceHtml +
+    '<div class="lifelines">'+
+    '<button class="life-btn" '+(STATE.fiftyUsed||STATE.answered?'disabled':'')+' data-action="fiftyFifty">'+t('fiftyFifty')+'</button>'+
+    '<button class="life-btn" '+(STATE.audienceUsed||STATE.answered?'disabled':'')+' data-action="audience">'+t('audience')+'</button>'+
+    '<button class="life-btn" '+(STATE.skipsLeft<=0||STATE.answered?'disabled':'')+' data-action="skip">'+t('skip')+' ('+STATE.skipsLeft+' '+t('skipsLeft')+')</button>'+
+    '<button class="life-btn" '+(STATE.answered?'disabled':'')+' data-action="cashOut">'+t('cashOut')+'</button>'+
+    '</div></div><div class="ladder">'+ladderHtml+'</div></div>';
+}
+
+function screenResult(){
+  const title = STATE.outcome==='won' ? t('youWon') : STATE.outcome==='cashout' ? t('youCashed') : STATE.outcome==='left' ? t('youLeft') : t('youLost');
+  const noteHtml = STATE.usedFallback ? '<div class="note">Played using the built-in question set (live AI questions weren' + String.fromCharCode(39) + 't reachable this session).</div>' : '';
+  const certHtml = STATE.certDataUrl
+    ? '<img class="cert-preview" src="'+STATE.certDataUrl+'" alt="Certificate of achievement">'
+    : '<div class="cert-preview cert-building"><div class="spinner"></div><p class="muted" style="margin:0;">Building your certificate…</p></div>';
+  return '<div class="card center"><h2 class="title">'+title+'</h2><div class="muted">'+t('finalScoreLbl')+'</div>'+
+    '<div class="score-big">'+fmt(STATE.score)+' <span style="font-size:18px;">/ 500 '+t('pts')+'</span></div>'+
+    '<div class="badge">'+tierName(STATE.score)+'</div>'+
+    certHtml +
+    '<div class="row center" style="margin-top:10px;">'+
+    '<button class="btn" '+(STATE.certDataUrl?'':'disabled')+' data-action="certificate">'+t('downloadCert')+'</button>'+
+    '<button class="btn ghost" data-action="share">'+t('shareResult')+'</button>'+
+    '<button class="btn ghost" data-action="playAgain">'+t('playAgain')+'</button>'+
+    '<button class="btn ghost" data-action="newSetup">'+t('newSetup')+'</button>'+
+    '</div>'+noteHtml+'</div>';
+}
+function shareResult(){
+  const text = 'I scored '+STATE.score+'/500 ('+tierName(STATE.score)+') on Quiz Champion!';
+  if(navigator.share){ navigator.share({text:text}).catch(function(){}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ alert(t('copied')); }); }
+  else { alert(text); }
+}
+
+/* ---------- Game logic ---------- */
+function resetQuizState(){
+  STATE.plan=[]; STATE.qIndex=0; STATE.fetchedCount=0; STATE.buffer=[];
+  STATE.fiftyUsed=false; STATE.skipsLeft=3; STATE.removedOptions=null; STATE.audienceUsed=false; STATE.audienceData=null;
+  STATE.currentQuestion=null; STATE.answered=false; STATE.selectedIdx=null;
+  STATE.correctStreakTier=-1; STATE.outcome=null;
+  /* askedTexts is intentionally kept across replays so repeat plays keep getting fresh questions */
+}
+
+function startQuiz(){
+  resetQuizState();
+  STATE.plan = Array.from({length:20}, function(){ return STATE.categories[Math.floor(Math.random()*STATE.categories.length)]; });
+  STATE.status='loading'; render();
+  loadBatch(0,4).then(function(){ nextQuestion(); }).catch(function(){ STATE.status='error'; render(); });
+}
+
+function difficultyForIndex(i){ if(i<7) return 'easy'; if(i<14) return 'medium'; return 'hard'; }
+
+function shuffleOptions(q){
+  const idxs=[0,1,2,3];
+  for(let i=idxs.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const tmp=idxs[i]; idxs[i]=idxs[j]; idxs[j]=tmp; }
+  const newOptions = idxs.map(function(i){return q.options[i];});
+  const newCorrect = idxs.indexOf(q.correctIndex);
+  return {question:q.question, options:newOptions, correctIndex:newCorrect};
+}
+function fallbackForSlice(slice, excludeArr){
+  const used = new Set(excludeArr);
+  return slice.map(function(catId){
+    const bank = FALLBACK[catId] || FALLBACK.general;
+    let pool = bank.filter(function(q){ return !used.has(q.question); });
+    if(pool.length===0) pool = bank;
+    const pick = pool[Math.floor(Math.random()*pool.length)];
+    used.add(pick.question);
+    const shuffled = shuffleOptions(pick);
+    return { question: shuffled.question, options: shuffled.options, correctIndex: shuffled.correctIndex, category: catId, imageKeyword: catId };
+  });
+}
+
+async function loadBatch(startIdx, count){
+  STATE.lastBatchArgs = {startIdx:startIdx, count:count};
+  const slice = STATE.plan.slice(startIdx, startIdx+count);
+  if(slice.length===0) return;
+  const catNames = slice.map(function(id){ const c=CATEGORIES.find(function(x){return x.id===id;}); return c?c.en:id; }).filter(function(v,i,a){return a.indexOf(v)===i;});
+  let questions;
+  try{
+    questions = await generateQuestions(slice.length, catNames, difficultyForIndex(startIdx), Array.from(STATE.askedTexts));
+    if(!questions || questions.length===0) throw new Error('empty result');
+  }catch(err){
+    STATE.usedFallback = true;
+    questions = fallbackForSlice(slice, Array.from(STATE.askedTexts));
+  }
+  questions.forEach(function(q, idx){
+    const catId = slice[idx] || slice[0];
+    q.category = CATEGORIES.some(function(c){return c.id===q.category;}) ? q.category : catId;
+    STATE.askedTexts.add(q.question);
+    q.image = null;
+    STATE.buffer.push(q);
+    fetchImageForQuestion(q);
+  });
+  STATE.fetchedCount += questions.length;
+}
+
+async function generateQuestions(count, catNames, difficulty, exclude){
+  const sys = 'You generate quiz questions for a trivia game show. Output ONLY a raw JSON array, no markdown fences, no commentary. Each element is an object with exactly: "question" (string), "options" (array of exactly 4 strings), "correctIndex" (integer 0-3), "category" (one of the provided category names, in English), "imageKeyword" (2-4 word English phrase for an illustrative photo search). Write the question and options entirely in ' + LANG_NAME_FOR_PROMPT[STATE.lang] + '. Ensure exactly one unambiguous correct option and factual accuracy.';
+  const userMsg = 'Generate ' + count + ' ' + difficulty + '-difficulty quiz questions, mixing these categories: ' + catNames.join(', ') + '. Make them different in topic and phrasing from these already-asked questions: ' + (exclude.slice(-30).join(' | ') || 'none') + '. Variety token: ' + Math.random().toString(36).slice(2) + '.';
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1000, system: sys, messages:[{role:'user', content:userMsg}] })
+  });
+  if(!resp.ok) throw new Error('API error '+resp.status);
+  const data = await resp.json();
+  let text = (data.content||[]).map(function(b){ return b.text||''; }).join('');
+  text = text.replace(/```json|```/g,'').trim();
+  const parsed = JSON.parse(text);
+  if(!Array.isArray(parsed)) throw new Error('bad format');
+  return parsed.filter(function(q){ return q.question && Array.isArray(q.options) && q.options.length===4 && typeof q.correctIndex==='number'; });
+}
+
+async function fetchImageForQuestion(q){
+  try{
+    const url = 'https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=' + encodeURIComponent(q.imageKeyword||q.question) + '&gsrlimit=1&prop=pageimages&pithumbsize=500&format=json&origin=*';
+    const r = await fetch(url);
+    const d = await r.json();
+    const pages = d.query && d.query.pages;
+    if(pages){
+      const first = Object.values(pages)[0];
+      if(first && first.thumbnail && first.thumbnail.source){
+        q.image = first.thumbnail.source;
+        if(STATE.currentQuestion === q && STATE.status==='game') render();
+      }
+    }
+  }catch(e){}
+}
+
+function nextQuestion(){
+  if(STATE.buffer.length===0){
+    if(STATE.fetchedCount>=20){ STATE.status='result'; STATE.outcome='won'; render(); return; }
+    STATE.status='loading'; render();
+    loadBatch(STATE.fetchedCount, Math.min(4,20-STATE.fetchedCount)).then(nextQuestion).catch(function(){ STATE.status='error'; render(); });
+    return;
+  }
+  STATE.currentQuestion = STATE.buffer.shift();
+  STATE.answered=false; STATE.selectedIdx=null; STATE.removedOptions=null; STATE.audienceData=null;
+  STATE.status='game'; render();
+  fetchImageForQuestion(STATE.currentQuestion);
+  const remainingNeeded = 20-STATE.fetchedCount;
+  if(STATE.buffer.length<2 && remainingNeeded>0 && !STATE._fetching){
+    STATE._fetching=true;
+    loadBatch(STATE.fetchedCount, Math.min(4,remainingNeeded)).finally(function(){ STATE._fetching=false; });
+  }
+}
+
+function selectAnswer(idx){
+  if(STATE.answered) return;
+  STATE.answered=true; STATE.selectedIdx=idx;
+  const correct = idx===STATE.currentQuestion.correctIndex;
+  beep(correct?880:220, correct?0.25:0.35);
+  if(correct){ STATE.score = POINTS[STATE.qIndex]; STATE.correctStreakTier = STATE.qIndex; }
+  render();
+  setTimeout(function(){ proceedAfterAnswer(correct); }, 1900);
+}
+function proceedAfterAnswer(correct){
+  if(!correct){ enterResult('lost'); return; }
+  STATE.qIndex++;
+  if(STATE.qIndex>=20){ enterResult('won'); return; }
+  nextQuestion();
+}
+function useFiftyFifty(){
+  if(STATE.fiftyUsed||STATE.answered) return;
+  const q=STATE.currentQuestion;
+  const wrongIdx = [0,1,2,3].filter(function(i){return i!==q.correctIndex;});
+  wrongIdx.sort(function(){return Math.random()-0.5;});
+  STATE.removedOptions = wrongIdx.slice(0,2);
+  STATE.fiftyUsed=true; render();
+}
+function useAudience(){
+  if(STATE.audienceUsed||STATE.answered) return;
+  const q=STATE.currentQuestion;
+  const weights=[8,8,8,8];
+  weights[q.correctIndex] += 40+Math.floor(Math.random()*30);
+  for(let i=0;i<4;i++) if(i!==q.correctIndex) weights[i]+=Math.floor(Math.random()*12);
+  const total=weights.reduce(function(a,b){return a+b;},0);
+  STATE.audienceData = weights.map(function(w){ return Math.round(w/total*100); });
+  STATE.audienceUsed=true; render();
+}
+function useSkip(){
+  if(STATE.skipsLeft<=0||STATE.answered) return;
+  STATE.skipsLeft--;
+  nextQuestion();
+}
+function cashOut(){
+  if(STATE.answered) return;
+  STATE.score = STATE.correctStreakTier>=0 ? POINTS[STATE.correctStreakTier] : 0;
+  enterResult('cashout');
+}
+
+/* Called whenever the game ends (win, loss, banked score, or left the app).
+   Shows the result screen immediately, then builds the certificate image
+   in the background and re-renders once it's ready so it appears inline. */
+async function enterResult(outcome){
+  STATE.outcome = outcome;
+  STATE.status = 'result';
+  STATE.certDataUrl = null;
+  STATE.certBuilding = true;
+  render();
+  await buildCertificate();
+  STATE.certBuilding = false;
+  if(STATE.status==='result') render();
+}
+
+/* ---------- Certificate ---------- */
+function embossText(ctx, text, x, y, fontSize, weight, family, colorTop, colorBottom){
+  ctx.font = weight+' '+fontSize+'px '+family;
+  ctx.textAlign = 'center';
+  // recessed shadow (gives raised depth)
+  ctx.fillStyle='rgba(0,0,0,0.55)';
+  ctx.fillText(text, x+2, y+3);
+  // raised highlight edge
+  ctx.fillStyle='rgba(255,255,255,0.4)';
+  ctx.fillText(text, x-1, y-1);
+  // glossy metallic fill
+  const g = ctx.createLinearGradient(0, y-fontSize*0.8, 0, y+fontSize*0.3);
+  g.addColorStop(0, colorTop);
+  g.addColorStop(0.5, colorBottom);
+  g.addColorStop(1, colorTop);
+  ctx.fillStyle=g;
+  ctx.fillText(text, x, y);
+  // fine definition stroke
+  ctx.lineWidth=0.8;
+  ctx.strokeStyle='rgba(0,0,0,0.3)';
+  ctx.strokeText(text, x, y);
+}
+
+async function buildCertificate(){
+  try{
+    if(document.fonts && document.fonts.ready) await document.fonts.ready;
+    const w=1200,h=850;
+    const c=document.createElement('canvas'); c.width=w; c.height=h;
+    const ctx=c.getContext('2d');
+    const grad = ctx.createLinearGradient(0,0,w,h);
+    grad.addColorStop(0,'#131B45'); grad.addColorStop(1,'#0A0F2B');
+    ctx.fillStyle=grad; ctx.fillRect(0,0,w,h);
+
+    // glossy diagonal sheen across the whole card, like laminated card stock
+    ctx.save();
+    const sheen = ctx.createLinearGradient(0,0,w*0.55,h);
+    sheen.addColorStop(0,'rgba(255,255,255,0.10)');
+    sheen.addColorStop(0.4,'rgba(255,255,255,0.02)');
+    sheen.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=sheen;
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(w*0.42,0); ctx.lineTo(w*0.16,h); ctx.lineTo(0,h); ctx.closePath(); ctx.fill();
+    ctx.restore();
+
+    // beveled metallic border (light-to-dark diagonal = embossed edge)
+    const borderGrad = ctx.createLinearGradient(0,0,w,h);
+    borderGrad.addColorStop(0,'#FFF3C4'); borderGrad.addColorStop(0.5,'#E8B94A'); borderGrad.addColorStop(1,'#8A6B2A');
+    ctx.strokeStyle=borderGrad; ctx.lineWidth=7; ctx.strokeRect(30,30,w-60,h-60);
+    ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineWidth=1.5; ctx.strokeRect(38,38,w-76,h-76);
+    ctx.strokeStyle='rgba(232,185,74,.5)'; ctx.lineWidth=1.5; ctx.strokeRect(48,48,w-96,h-96);
+
+    embossText(ctx,'QUIZ CHAMPION', w/2, 104, 16, '700', 'Inter, sans-serif', '#FFF6DC', '#B8862F');
+    embossText(ctx,'Certificate of Achievement', w/2, 162, 42, '900', 'Georgia, serif', '#FFF9E8', '#D9A93A');
+
+    ctx.font='15px Inter, sans-serif'; ctx.fillStyle='#A7ACC9'; ctx.textAlign='center';
+    ctx.fillText('This certifies that', w/2, 218);
+
+    embossText(ctx, STATE.name || 'Player', w/2, 280, 48, '700', 'Georgia, serif', '#FFEFC2', '#C9971F');
+
+    const meta = [];
+    if(STATE.age) meta.push('Age: '+STATE.age);
+    if(STATE.klass) meta.push('Class: '+STATE.klass);
+    if(meta.length){
+      ctx.font='14px Inter, sans-serif'; ctx.fillStyle='#A7ACC9'; ctx.textAlign='center';
+      ctx.fillText(meta.join('     |     '), w/2, 308);
+    }
+
+    ctx.font='17px Inter, sans-serif'; ctx.fillStyle='#F5F3EC'; ctx.textAlign='center';
+    ctx.fillText('has scored', w/2, 350);
+    embossText(ctx, STATE.score + ' / 500', w/2, 400, 42, '900', 'Georgia, serif', '#FFF3C4', '#D9A93A');
+    ctx.font='14px Inter, sans-serif'; ctx.fillStyle='#F5F3EC'; ctx.textAlign='center';
+    ctx.fillText('points in the Quiz Champion Challenge', w/2, 424);
+
+    embossText(ctx, tierName(STATE.score).toUpperCase(), w/2, 454, 16, '700', 'Inter, sans-serif', '#FFF6DC', '#B8862F');
+
+    const catsPlayed = Array.from(new Set(STATE.categories)).map(function(id){ const c2=CATEGORIES.find(function(x){return x.id===id;}); return c2? c2.en : id; }).join(', ');
+    ctx.font='13px Inter, sans-serif'; ctx.fillStyle='#A7ACC9';
+    wrapText(ctx, 'Categories: '+catsPlayed, w/2, 484, 900, 18);
+
+    const cy=558;
+    for(let i=0;i<7;i++){
+      const dx = w/2 - 180 + i*60;
+      ctx.save();
+      ctx.translate(dx,cy); ctx.rotate(Math.PI/4);
+      const dgrad = ctx.createLinearGradient(-8,-8,8,8);
+      dgrad.addColorStop(0, i<4?'#FFF3C4':'rgba(232,185,74,.3)');
+      dgrad.addColorStop(1, i<4?'#B8862F':'rgba(138,107,42,.3)');
+      ctx.fillStyle = dgrad;
+      ctx.fillRect(-8,-8,16,16);
+      ctx.restore();
+    }
+
+    // raised metallic medallion seal
+    ctx.save();
+    ctx.translate(w-170,h-160);
+    const sealGrad = ctx.createRadialGradient(-10,-10,4,0,0,48);
+    sealGrad.addColorStop(0,'#FFF6DC'); sealGrad.addColorStop(0.55,'#E8B94A'); sealGrad.addColorStop(1,'#8A6B2A');
+    ctx.beginPath(); ctx.arc(0,0,46,0,Math.PI*2); ctx.fillStyle=sealGrad; ctx.fill();
+    for(let r=44; r>=16; r-=8){
+      ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
+      ctx.strokeStyle = r%16===0 ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.4)';
+      ctx.lineWidth=1.5; ctx.stroke();
+    }
+    ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.font='700 13px Inter, sans-serif'; ctx.textAlign='center';
+    ctx.fillText('QC', 1, 6);
+    ctx.fillStyle='#1B1200';
+    ctx.fillText('QC', 0, 5);
+    ctx.restore();
+
+    const certId = 'QC-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
+    const dateStr = new Date().toLocaleDateString('en-IN', {year:'numeric',month:'long',day:'numeric'});
+    ctx.font='13px Inter, sans-serif'; ctx.fillStyle='#A7ACC9';
+    ctx.textAlign='left'; ctx.fillText('Date: '+dateStr, 100, h-85);
+    ctx.fillText('Certificate ID: '+certId, 100, h-65);
+    ctx.strokeStyle='rgba(232,185,74,.4)'; ctx.beginPath(); ctx.moveTo(100,h-105); ctx.lineTo(300,h-105); ctx.stroke();
+
+    STATE.certDataUrl = c.toDataURL('image/png');
+  }catch(e){
+    STATE.certDataUrl = null;
+  }
+}
+function downloadCertificate(){
+  if(!STATE.certDataUrl) return;
+  const link=document.createElement('a');
+  link.download = (STATE.name||'quiz-champion')+'-certificate.png';
+  link.href = STATE.certDataUrl;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+function wrapText(ctx,text,x,y,maxWidth,lineHeight){
+  const words=text.split(' '); let line=''; let curY=y; ctx.textAlign='center';
+  for(let n=0;n<words.length;n++){
+    const test=line+words[n]+' ';
+    if(ctx.measureText(test).width>maxWidth && n>0){ ctx.fillText(line,x,curY); line=words[n]+' '; curY+=lineHeight; }
+    else line=test;
+  }
+  ctx.fillText(line,x,curY);
+}
+
+/* ---------- Boot ---------- */
+render();
+</script>
+</body>
+</html>
